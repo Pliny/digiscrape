@@ -41,7 +41,7 @@ def main():
                 digikey_part_number = row[35]
                 process_pn(navdy_name, digikey_part_number)
 
-    with open("index.html", "w") as html:
+    with open("digikey-scrape-results.html", "w") as html:
         html.write(outsoup.prettify())
     results_csv.close()
 
