@@ -137,10 +137,6 @@ def process_pn(navdy_name, digikey_part_number):
             row.append(col)
         outsoup.find(class_="table").append(row)
 
-        with open("index.html", "w") as html:
-            html.write(outsoup.prettify())
-        exit(1)
-
 def get_file_from_url_maybe(url):
     response = rq.get(url)
     filename = url.split('?')[0]
