@@ -6,10 +6,10 @@ import os
 
 search_url = "http://search.digikey.com/scripts/DkSearch/dksus.dll?Detail&name="
 output_dir = "./output"
-results_csv = open('results.csv', 'w');
+results_csv = open('digikey-scrape-results.csv', 'w');
 
 def main():
-    results_csv.write("Digikey Search String, Navdy PN, Digikey PN, min price, min quantity, max price, max quantity, image URL, datasheet URLS\n")
+    results_csv.write("Navdy PN, Digikey Search String, Digikey PN, min price, min quantity, max price, max quantity, image URL, datasheet URLS\n")
 
     with open('Entire_Database151124.csv', 'rb') as f:
         reader = csv.reader(f)
@@ -53,10 +53,10 @@ def process_pn(navdy_name, digikey_part_number):
         else:
             datasheet_url = "N/A"
 
-        results_csv.write(search_url + digikey_part_number + "," + navdy_name + "," + digikey_part_number + "," +
-                pricing['min']['price'] + "," + pricing['min']['unit'] + "," +
-                pricing['max']['price'] + "," + pricing['max']['unit'] + "," +
-                image_url + ",\"" + "; ".join(datasheet_urls) + "\"\n")
+        results_csv.write("\"" + navdy_name + "\",\"" +  search_url + digikey_part_number + "\",\"" + digikey_part_number + "\",\"" +
+                pricing['min']['price'] + "\",\"" + pricing['min']['unit'] + "\",\"" +
+                pricing['max']['price'] + "\",\"" + pricing['max']['unit'] + "\",\"" +
+                image_url + "\",\"" + "; ".join(datasheet_urls) + "\"\n")
     else:
         results_csv.write(search_url + digikey_part_number + "," + navdy_name + "," + digikey_part_number + "," +
                 "UNKNOWN" + "," + "UNKNOWN" + "," +
