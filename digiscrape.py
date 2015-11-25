@@ -58,7 +58,7 @@ def process_pn(navdy_name, digikey_part_number):
                 pricing['max']['price'] + "\",\"" + pricing['max']['unit'] + "\",\"" +
                 image_url + "\",\"" + "; ".join(datasheet_urls) + "\"\n")
     else:
-        results_csv.write(search_url + digikey_part_number + "," + navdy_name + "," + digikey_part_number + "," +
+        results_csv.write("\"" + navdy_name + "\",\"" +  search_url + digikey_part_number + "\",\"" + digikey_part_number + "\"," +
                 "UNKNOWN" + "," + "UNKNOWN" + "," +
                 "UNKNOWN" + "," + "UNKNOWN" + "," +
                 "UNKNOWN" + "," + "UNKNOWN" + "\n")
