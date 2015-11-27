@@ -47,9 +47,10 @@ def main():
 
 
 def process_pn(navdy_name, digikey_part_number):
-    print(navdy_name + ": FETCHING: " + digikey_part_number)
 
     item = DigikeyOrm(digikey_part_number)
+
+    print(navdy_name + ": FETCHING: " + item['search_url'])
 
     if(item.part_found()):
 
