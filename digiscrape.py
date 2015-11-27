@@ -3,8 +3,8 @@ import requests as rq
 import re
 import csv
 import os
+from digikey_orm import DigikeyOrm
 
-search_url = "http://search.digikey.com/scripts/DkSearch/dksus.dll?Detail&name="
 output_dir = "./output"
 results_csv = open('digikey-scrape-results.csv', 'w');
 
@@ -47,38 +47,28 @@ def main():
 
 
 def process_pn(navdy_name, digikey_part_number):
-    print(navdy_name + ": FETCHING: " + search_url + digikey_part_number)
-    response = rq.get(search_url + digikey_part_number)
-    soup = bsoup(response.text, 'html.parser')
+    print(navdy_name + ": FETCHING: " + digikey_part_number)
 
-    if(not re.search("404 \| DigiKey", soup.title.get_text())):
-        # PRICE
-        pricing = get_pricing(soup)
+    item = DigikeyOrm(digikey_part_number)
 
-        # IMAGE
-        image_url = get_image(soup)
-        if(image_url):
-            get_file_from_url_maybe(image_url)
-        else:
-            image_url = "N/A"
+    if(item.part_found()):
 
-        # DATASHEETS
-        datasheet_urls = get_datasheet(soup)
-        if(datasheet_urls):
-            for datasheet_url in datasheet_urls:
-                get_file_from_url_maybe(datasheet_url)
-        else:
-            datasheet_url = "N/A"
+        if(item.has_image_url()):
+            get_file_from_url_maybe(item['image_url'])
+
+        if(item.has_datasheets()):
+            for datasheet in item['datasheets']:
+                get_file_from_url_maybe(datasheet)
 
         contents = [ "\"" + navdy_name + "\"", 
-                     "\"" +  search_url + digikey_part_number + "\"",
+                     "\"" +  item['search_url'] + "\"",
                      "\"" + digikey_part_number + "\"",
-                     "\"" + pricing['min']['price'] + "\"",
-                     "\"" + pricing['min']['unit'] + "\"",
-                     "\"" + pricing['max']['price'] + "\"",
-                     "\"" + pricing['max']['unit'] + "\"",
-                     "\"" + image_url + "\"",
-                     "\"" + "; ".join(datasheet_urls) + "\"" ]
+                     "\"" + item['pricing']['min']['price'] + "\"",
+                     "\"" + item['pricing']['min']['unit'] + "\"",
+                     "\"" + item['pricing']['max']['price'] + "\"",
+                     "\"" + item['pricing']['max']['unit'] + "\"",
+                     "\"" + item['image_url'] + "\"",
+                     "\"" + "; ".join(item['datasheets']) + "\"" ]
         results_csv.write(",".join(contents))
 
         row = outsoup.new_tag("tr")
@@ -114,7 +104,7 @@ def process_pn(navdy_name, digikey_part_number):
 
     else:
         contents = [ "\"" + navdy_name + "\"",
-                     "\"" +  search_url + digikey_part_number + "\"",
+                     "\"" +  item['search_url'] + "\"",
                      "\"" + digikey_part_number + "\"",
                      "UNKNOWN", "UNKNOWN",
                      "UNKNOWN", "UNKNOWN",
@@ -139,31 +129,11 @@ def process_pn(navdy_name, digikey_part_number):
 
 def get_file_from_url_maybe(url):
     response = rq.get(url)
-    filename = url.split('?')[0]
-    filename = re.sub("/$", "", filename)
-    filename = os.path.basename(filename)
+    filename = get_basename_from_url(url)
     file_path = output_dir + "/" + filename
     if(not os.path.isfile(file_path)):
         with open(file_path, 'wb') as f:
             f.write(response.content)
-
-
-def get_pricing(soup):
-    ret_val = { 'min': {}, 'max': {} }
-    pricing_cell = soup.find(id="pricing").find_all('tr')
-    ret_val['min']['unit']  = pricing_cell[1].find_all('td')[0].get_text()
-    ret_val['min']['price'] = pricing_cell[1].find_all('td')[1].get_text()
-    ret_val['max']['unit']  = pricing_cell[-1].find_all('td')[0].get_text()
-    ret_val['max']['price'] = pricing_cell[-1].find_all('td')[1].get_text()
-    return ret_val
-
-def get_image(soup):
-    image_link_tag = soup.find(class_='image-table').a
-    return image_link_tag and  image_link_tag['href']
-
-def get_datasheet(soup):
-    ds_link_tags = soup.find_all(class_='lnkDatasheet')
-    return ds_link_tags and map(lambda x: x['href'], ds_link_tags)
 
 def get_basename_from_url(url):
     filename = url.split('?')[0]
