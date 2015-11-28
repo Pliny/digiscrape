@@ -8,7 +8,7 @@ class WebView:
         self.__filename = filename
 
         bootstrap_cdn_url = "https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
-        self.__index_html = ("<html><head><title>Navdy's DigiScrape</title>"
+        self.__index_html = ("<html><head><title>DigiScrape</title>"
                             '<link rel="stylesheet" href="' + bootstrap_cdn_url + '">'
                             '</head><body><table class="table table-hover">'
                             '<thead></thead><tbody></tbody></table></body></html>')
@@ -16,7 +16,7 @@ class WebView:
 
         header_row = self.__outsoup.new_tag("tr")
 
-        titles = [ "Navdy PN", "Digikey PN", "Pricing",
+        titles = [ "Local PN", "Digikey PN", "Pricing",
                    "Image", "datasheet URLS" ]
         for idx,title in enumerate(titles):
             col = self.__outsoup.new_tag("th")
@@ -28,12 +28,12 @@ class WebView:
         with open(self.__filename, "w") as f:
             f.write(self.__outsoup.prettify())
 
-    def add_row(self, navdy_pn, item):
+    def add_row(self, local_pn, item):
         row = self.__outsoup.new_tag("tr")
 
-        # Navdy PN
+        # Local PN
         col = self.__outsoup.new_tag("td")
-        col.string = navdy_pn
+        col.string = local_pn
         row.append(col)
 
         # Digikey PN

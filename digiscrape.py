@@ -21,27 +21,27 @@ def main():
     with open(sys.argv[1], 'rb') as f:
         reader = csv.reader(f)
         for row in reader:
-            navdy_name = row[0]
+            local_pn = row[0]
             primary_source_from_digikey   = row[31].lower() == "digikey"
             secondary_source_from_digikey = row[34].lower() == 'digikey'
 
             if(primary_source_from_digikey):
                 digikey_part_number = row[32]
-                process_pn(navdy_name, digikey_part_number)
+                process_pn(local_pn, digikey_part_number)
 
             if(secondary_source_from_digikey):
                 digikey_part_number = row[35]
-                process_pn(navdy_name, digikey_part_number)
+                process_pn(local_pn, digikey_part_number)
 
     html_page.write()
     csv_page.close()
 
 
-def process_pn(navdy_name, digikey_part_number):
+def process_pn(local_pn, digikey_part_number):
 
     item = DigikeyOrm(digikey_part_number)
 
-    print(navdy_name + ": FETCHING: " + item['search_url'])
+    print(local_pn + ": FETCHING: " + item['search_url'])
 
     if(item.has_image_url()):
         download_file_from_url_maybe(item['image_url'])
@@ -50,8 +50,8 @@ def process_pn(navdy_name, digikey_part_number):
         for datasheet in item['datasheet_urls']:
             download_file_from_url_maybe(datasheet)
 
-    csv_page.add_row(navdy_name, item)
-    html_page.add_row(navdy_name, item)
+    csv_page.add_row(local_pn, item)
+    html_page.add_row(local_pn, item)
 
 
 def download_file_from_url_maybe(url):
