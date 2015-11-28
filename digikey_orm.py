@@ -30,17 +30,20 @@ class DigikeyOrm:
     def __populate(self):
         response = rq.get(self.search_url + self.pn)
         self.soup = bsoup(response.text, 'html.parser')
-        self.part_found = (not re.search("404 \| DigiKey", self.soup.title.get_text()))
+        self.__part_found = (not re.search("404 \| DigiKey", self.soup.title.get_text()))
 
     def __get_search_url(self):
         return self.search_url + self.pn
+
+    def __get_digikey_pn(self):
+        return self.pn
 
     def __get_pricing(self):
         not self.soup and self.__populate()
 
         if(not self.pricing):
             self.pricing = { 'min': {}, 'max': {} }
-            if(self.part_found):
+            if(self.part_found()):
                 pricing_cell = self.soup.find(id="pricing").find_all('tr')
                 self.pricing['min']['unit']  = pricing_cell[1].find_all('td')[0].get_text()
                 self.pricing['min']['price'] = pricing_cell[1].find_all('td')[1].get_text()
@@ -53,36 +56,34 @@ class DigikeyOrm:
         return self.pricing
 
     def has_image_url(self):
-        return self.part_found and self.__get_image_url() != "N/A"
+        return self.part_found() and self.__get_image_url() != "N/A"
 
     def __get_image_url(self):
         not self.soup and self.__populate()
 
         if(not self.image):
-            if(self.part_found):
+            self.image = "N/A"
+            if(self.part_found()):
                 image_link = self.soup.find(class_='image-table').a
                 if(image_link):
                     self.image = image_link['href']
-                else:
-                    self.image = "N/A"
 
         return self.image
 
-    def has_datasheets(self):
-        return self.part_found and self.__get_datasheets() != "N/A"
+    def has_datasheet_urls(self):
+        return self.part_found() and self.__get_datasheet_urls() != "N/A"
 
-    def __get_datasheets(self):
+    def __get_datasheet_urls(self):
         not self.soup and self.__populate()
 
         if(not self.datasheets):
+            self.datasheets = "N/A"
             ds_link_tags = self.soup.find_all(class_='lnkDatasheet')
             if(ds_link_tags):
                 self.datasheets = map(lambda x: x['href'], ds_link_tags)
-            else:
-                self.datasheets = "N/A"
 
         return self.datasheets
 
     def part_found(self):
         not self.soup and self.__populate()
-        return self.part_found
+        return self.__part_found
