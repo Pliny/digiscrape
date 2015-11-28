@@ -16,8 +16,8 @@ class WebView:
 
         header_row = self.__outsoup.new_tag("tr")
 
-        titles = [ "Navdy PN", "Digikey PN", "min price", "min quantity",
-                   "max price", "max quantity", "image URL", "datasheet URLS" ]
+        titles = [ "Navdy PN", "Digikey PN", "Pricing",
+                   "Image", "datasheet URLS" ]
         for idx,title in enumerate(titles):
             col = self.__outsoup.new_tag("th")
             col.string = title
@@ -43,24 +43,15 @@ class WebView:
         col.append(search_link)
         row.append(col)
 
-        # Min Price
+        # Pricing information
         col = self.__outsoup.new_tag("td")
-        col.string = item['pricing']['min']['price']
-        row.append(col)
+        table = ("<table class=\"table table-hover\"border=\"1\"><tbody><tr><th>Price Break</th>"
+                "<th>Unit Price</th></tr></tbody></table>")
+        table = bsoup(table, 'html.parser')
 
-        # Min Quantity
-        col = self.__outsoup.new_tag("td")
-        col.string = item['pricing']['min']['unit']
-        row.append(col)
-
-        # Max Price
-        col = self.__outsoup.new_tag("td")
-        col.string = item['pricing']['max']['price']
-        row.append(col)
-
-        # Max Quantity
-        col = self.__outsoup.new_tag("td")
-        col.string = item['pricing']['max']['unit']
+        table.tbody.append(self.__row_for(item['pricing']['min']))
+        table.tbody.append(self.__row_for(item['pricing']['max']))
+        col.append(table)
         row.append(col)
 
         # Image
@@ -96,3 +87,17 @@ class WebView:
         filename = url.split('?')[0]
         filename = re.sub("/$", "", filename)
         return os.path.basename(filename)
+
+    def __row_for(self, price_unit_dict):
+        ptr = self.__outsoup.new_tag("tr")
+
+        ptd = self.__outsoup.new_tag("td", **{'class':'text-center'})
+        ptd.string = price_unit_dict['unit']
+        ptr.append(ptd)
+
+        ptd = self.__outsoup.new_tag("td")
+        ptd.string = price_unit_dict['price']
+        ptr.append(ptd)
+
+        return ptr
+
