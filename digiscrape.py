@@ -1,22 +1,24 @@
-from bs4 import BeautifulSoup as bsoup
 import requests as rq
 import re
 import csv
 import os
+import sys
 from digikey_orm import DigikeyOrm
 from webview import WebView
+from csvview import CsvView
 
 output_dir = "./output"
-results_csv = open('digikey-scrape-results.csv', 'w');
 
+csv_page  = CsvView('digikey-scrape-results.csv')
 html_page = WebView('digikey-scrape-results.html')
 
 def main():
-    col_titles = "Navdy PN, Digikey Search String, Digikey PN, min price, min quantity, max price, max quantity, image URL, datasheet URLS".split(',')
 
-    results_csv.write(",".join(col_titles) + "\n")
+    if(len(sys.argv) != 2 or not sys.argv[1] or not os.path.isfile(sys.argv[1])):
+        print("ERROR: Must provide an input csv file as argument. Exiting.")
+        exit(1)
 
-    with open('testdb.csv', 'rb') as f:
+    with open(sys.argv[1], 'rb') as f:
         reader = csv.reader(f)
         for row in reader:
             navdy_name = row[0]
@@ -32,7 +34,7 @@ def main():
                 process_pn(navdy_name, digikey_part_number)
 
     html_page.write()
-    results_csv.close()
+    csv_page.close()
 
 
 def process_pn(navdy_name, digikey_part_number):
@@ -42,31 +44,21 @@ def process_pn(navdy_name, digikey_part_number):
     print(navdy_name + ": FETCHING: " + item['search_url'])
 
     if(item.has_image_url()):
-        get_file_from_url_maybe(item['image_url'])
+        download_file_from_url_maybe(item['image_url'])
 
     if(item.has_datasheet_urls()):
         for datasheet in item['datasheet_urls']:
-            get_file_from_url_maybe(datasheet)
+            download_file_from_url_maybe(datasheet)
 
-    contents = [ "\"" + navdy_name + "\"", 
-                 "\"" +  item['search_url'] + "\"",
-                 "\"" + digikey_part_number + "\"",
-                 "\"" + item['pricing']['min']['price'] + "\"",
-                 "\"" + item['pricing']['min']['unit'] + "\"",
-                 "\"" + item['pricing']['max']['price'] + "\"",
-                 "\"" + item['pricing']['max']['unit'] + "\"",
-                 "\"" + item['image_url'] + "\"",
-                 "\"" + "; ".join(item['datasheet_urls']) + "\"" ]
-    results_csv.write(",".join(contents) + "\n")
-
+    csv_page.add_row(navdy_name, item)
     html_page.add_row(navdy_name, item)
 
 
-def get_file_from_url_maybe(url):
-    response = rq.get(url)
+def download_file_from_url_maybe(url):
     filename = get_basename_from_url(url)
     file_path = output_dir + "/" + filename
     if(not os.path.isfile(file_path)):
+        response = rq.get(url)
         with open(file_path, 'wb') as f:
             f.write(response.content)
 

@@ -71,13 +71,13 @@ class DigikeyOrm:
         return self.image
 
     def has_datasheet_urls(self):
-        return self.part_found() and self.__get_datasheet_urls() != "N/A"
+        return self.part_found() and self.__get_datasheet_urls()[0] != "N/A"
 
     def __get_datasheet_urls(self):
         not self.soup and self.__populate()
 
         if(not self.datasheets):
-            self.datasheets = "N/A"
+            self.datasheets = [ "N/A" ]
             ds_link_tags = self.soup.find_all(class_='lnkDatasheet')
             if(ds_link_tags):
                 self.datasheets = map(lambda x: x['href'], ds_link_tags)
