@@ -22,15 +22,10 @@ def main():
         reader = csv.reader(f)
         for row in reader:
             local_pn = row[0]
-            primary_source_from_digikey   = row[31].lower() == "digikey"
-            secondary_source_from_digikey = row[34].lower() == 'digikey'
+            supplier_from_digikey   = row[5].lower() == "digi-key"
 
-            if(primary_source_from_digikey):
-                digikey_part_number = row[32]
-                process_pn(local_pn, digikey_part_number)
-
-            if(secondary_source_from_digikey):
-                digikey_part_number = row[35]
+            if(supplier_from_digikey):
+                digikey_part_number = row[6]
                 process_pn(local_pn, digikey_part_number)
 
     html_page.write()

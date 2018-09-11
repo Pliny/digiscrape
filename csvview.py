@@ -11,7 +11,7 @@ class CsvView:
         self.__results_csv.close()
 
     def add_row(self, local_pn, item):
-        contents = [ "\"" + local_pn + "\"", 
+        contents = [ "\"" + local_pn + "\"",
                      "\"" +  item['search_url'] + "\"",
                      "\"" + item['digikey_pn'] + "\"",
                      "\"" + item['pricing']['min']['price'] + "\"",

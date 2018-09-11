@@ -44,12 +44,15 @@ class DigikeyOrm:
         if(not self.pricing):
             self.pricing = { 'min': {}, 'max': {} }
             if(self.part_found()):
-                pricing_cell = self.soup.find(id="pricing").find_all('tr')
-                self.pricing['min']['unit']  = pricing_cell[1].find_all('td')[0].get_text()
-                self.pricing['min']['price'] = pricing_cell[1].find_all('td')[1].get_text()
-                self.pricing['max']['unit']  = pricing_cell[-1].find_all('td')[0].get_text()
-                self.pricing['max']['price'] = pricing_cell[-1].find_all('td')[1].get_text()
-            else:
+                pricing_cell = self.soup.find(class_="product-dollars")
+                if(pricing_cell):
+                    pricing_cell = pricing_cell.find_all('tr')
+                    self.pricing['min']['unit']  = pricing_cell[1].find_all('td')[0].get_text()
+                    self.pricing['min']['price'] = pricing_cell[1].find_all('td')[1].get_text()
+                    self.pricing['max']['unit']  = pricing_cell[-1].find_all('td')[0].get_text()
+                    self.pricing['max']['price'] = pricing_cell[-1].find_all('td')[1].get_text()
+
+            if(len(self.pricing['min'].keys()) == 0):
                 self.pricing['min'] = { 'unit': "UNKNOWN", 'price': "UNKNOWN" }
                 self.pricing['max'] = { 'unit': "UNKNOWN", 'price': "UNKNOWN" }
 
@@ -64,9 +67,11 @@ class DigikeyOrm:
         if(not self.image):
             self.image = "N/A"
             if(self.part_found()):
-                image_link = self.soup.find(class_='image-table').a
+                image_link = self.soup.find(class_='product-photo-wrapper').a
                 if(image_link):
                     self.image = image_link['href']
+                    if(self.image[0] == '/'):
+                        self.image = 'https:' + self.image
 
         return self.image
 
@@ -81,6 +86,9 @@ class DigikeyOrm:
             ds_link_tags = self.soup.find_all(class_='lnkDatasheet')
             if(ds_link_tags):
                 self.datasheets = map(lambda x: x['href'], ds_link_tags)
+                for i in range(len(self.datasheets)):
+                    if(self.datasheets[i][0] == '/'):
+                        self.datasheets[i] = "https:" + self.datasheets[i]
 
         return self.datasheets
 
