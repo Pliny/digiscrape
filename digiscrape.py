@@ -39,13 +39,13 @@ def main():
 
             if(supplier_from_digikey):
                 digikey_part_number = dk_pn
-                process_pn(local_pn, digikey_part_number)
+                process_pn(local_pn, digikey_part_number, row[4])
 
     html_page.write()
     csv_page.close()
 
 
-def process_pn(local_pn, digikey_part_number):
+def process_pn(local_pn, digikey_part_number, quantity):
 
     item = DigikeyOrm(digikey_pn = digikey_part_number)
 
@@ -58,7 +58,7 @@ def process_pn(local_pn, digikey_part_number):
         for datasheet in item['datasheet_urls']:
             download_file_from_url_maybe(datasheet)
 
-    csv_page.add_row(local_pn, item)
+    csv_page.add_row(local_pn, item, quantity)
     html_page.add_row(local_pn, item)
 
 def find_digikey_pn(local_pn, mfg_part_number):
