@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup as bsoup
 import requests as rq
 import re
+import time
 
 class DigikeyOrm:
 
@@ -38,12 +39,22 @@ class DigikeyOrm:
         elif(self.mfgpn):
             url = self.mfgpn_search_url + self.mfgpn
         else:
-            raise ValueError("Must have either digikey p/n or mfg p/n to use this script")
+            raise ValueError("Must have either digikey p/n, mfg p/n, or direct digikey url to use this script")
 
-        # print "DEBUG: " + url
-        response = rq.get(url)
-        self.soup = bsoup(response.text, 'html.parser')
-        self.__page_found = (not re.search("404 \| DigiKey", self.soup.title.get_text()))
+        for i in range(0, 5):
+            # print "DEBUG: " + url
+            dk_errors = [ "404 \| DigiKey", "Internal Error" ]
+            response = rq.get(url)
+            self.soup = bsoup(response.text, 'html.parser')
+            for s in dk_errors:
+                self.__page_found = (not re.search(s, self.soup.title.get_text()))
+
+            self.__page_found = len([ x for x in dk_errors if x == self.soup.title.get_text() ]) == 0
+            if(self.__page_found):
+                break;
+            else:
+                print "DEBUG: Attempt %d, failed to fetch '%s' due to '%s'" %  (i, url, self.soup.title.get_text())
+                time.sleep(2)
 
     def __get_search_url(self):
         return self.search_url + self.__get_digikey_pn()
@@ -57,12 +68,15 @@ class DigikeyOrm:
     def __get_mfg_pn(self):
         not self.soup and self.__populate()
 
+        # print "DEBUG: mfgpn:" + self.mfgpn
         if(not self.mfgpn):
             self.mfgpn = "N/A"
             if(self.page_found()):
                 product_overview_cell = self.soup.find(id='product-overview')
                 if(product_overview_cell):
-                    print "mfg pn cell: " + str(product_overview_cell.find_all('tr'))
+                    print "IMPLEMENT ME!! mfg pn cell: " + str(product_overview_cell.find_all('tr'))
+            else:
+                print "DEBUG: page not found"
 
         return self.mfgpn
 
@@ -84,7 +98,11 @@ class DigikeyOrm:
                             self.url = "https://www.digikey.com" + self.url
                         self.pn = dk_pn_cell.a.text.strip()
                     elif(self.soup.find(id='noResults')):
-                        print "Cannot find DigiKey P/N"
+                        print "Digikey cannot find Mfg P/N"
+                    else:
+                        print "Unable to parse page. Skipping"
+            else:
+                print "DEBUG: Page not found"
         return self.pn
 
     def __get_pricing(self):

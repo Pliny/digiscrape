@@ -49,7 +49,7 @@ def process_pn(local_pn, digikey_part_number, quantity):
 
     item = DigikeyOrm(digikey_pn = digikey_part_number)
 
-    print("%-32s: FETCHING: %s" % (local_pn, item['search_url']))
+    print("%-32s: %24s: %s" % (local_pn, "GET PN DATA from", digikey_part_number))
 
     if(item.has_image_url()):
         download_file_from_url_maybe(item['image_url'])
@@ -64,7 +64,7 @@ def process_pn(local_pn, digikey_part_number, quantity):
 def find_digikey_pn(local_pn, mfg_part_number):
     item = DigikeyOrm(mfg_pn = mfg_part_number)
 
-    print("%-32s: FETCHING: %s" % (local_pn, item['mfgpn_search_url']))
+    print("%-32s: %24s: %s" % (local_pn, "GET DIGIKEY PN for", mfg_part_number))
 
     if(item.has_digikey_pn()):
         return item['digikey_pn']
