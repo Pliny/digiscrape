@@ -2,3 +2,4 @@ output/*
 *.csv
 *.html
 *.pyc
+.DS_Store
